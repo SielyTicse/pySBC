@@ -17,31 +17,30 @@ class era5(object):
         self.west      =  -28                     ## West Border
         self.north     =   68                     ## North Border
         self.south     =   38                     ## South Border
+        # ROOT PATH OF ERA5 DATA
         self.path_ERA5 = '/projectsa/NEMO/Forcing/ERA5/SURFACE_FORCING' 
-        ## ROOT PATH OF ERA5 DATA
-        ## WHERE TO EXTRACT YOUR REGION
+        # WHERE TO EXTRACT YOUR REGION
         self.path_EXTRACT = '/projectsa/NEMO/ryapat/Extract' 
-        ## NEMO FORCING
+        # NEMO FORCING
         self.path_FORCING = '/projectsa/NEMO/ryapat/Forcing'
         self.clean        = False            ## Clean extraction (longest bit)
         self.sph_ON       = False            ## Compute specific humidity or not
         self.chunks={'time':50}
 
-        self.var_path = { "10m_u_component_of_wind" : "u10", \
-                     "10m_v_component_of_wind" : "v10", \
-                     "2m_temperature"          : "t2m", \
-                     "mean_sea_level_pressure" : "msl", \
-                     "mean_snowfall_rate"      : "msr" , \
-                 "mean_surface_downward_long_wave_radiation_flux"  : "msdwlwrf", \
-                 "mean_surface_downward_short_wave_radiation_flux" : "msdwswrf", \
-                     "mean_total_precipitation_rate" : "mtpr" }
+        self.var_path = { 
+               "10m_u_component_of_wind" : "u10",
+               "10m_v_component_of_wind" : "v10",
+               "2m_temperature"          : "t2m", 
+               "mean_sea_level_pressure" : "msl", 
+               "mean_snowfall_rate"      : "msr" ,
+               "mean_surface_downward_long_wave_radiation_flux"  : "msdwlwrf",
+               "mean_surface_downward_short_wave_radiation_flux" : "msdwswrf",
+               "mean_total_precipitation_rate" : "mtpr" }
         
         if self.sph_ON :
            self.var_path[ "surface_pressure"  ] = 'sp'
            self.var_path[ "2m_dewpoint_temperature" ] = 'd2m'
 
-    #===================== INTERNAL FCTNS ========================
-    
     def timeit(func):
         """ decorator for timing a function """ 
 
@@ -53,16 +52,13 @@ class era5(object):
             
         return inner
     
-    def read_NetCDF(self, fname, KeyVar, chunks=None):
+    def read_NetCDF_all_years(self, fname, KeyVar, chunks=None):
         """Read NetCDF file"""
 
-        if "*" in fname: 
-            lfiles = sorted( glob.glob( fname ) )
-            ds = xr.open_mfdataset(lfiles, chunks=chunks, parallel=True,
-                                   decode_times=False)
-        else: 
-            ds = xr.open_dataset(fname, chunks=chunks, decode_times=False)
-    
+        lfiles = sorted( glob.glob( fname ) )
+        ds = xr.open_mfdataset(lfiles, chunks=chunks, parallel=True,
+                               decode_times=False)
+
         return ds[KeyVar]
     
     def add_global_attrs(self, ds):
@@ -73,15 +69,6 @@ class era5(object):
         ds.attrs['Description'] = 'ERA5 Atmospheric conditions for AMM15 NEMO'
     
         return ds
-    
-    def extract(self, fin, fout) :
-        if self.clean : os.system( "rm {0}".format( fout ) )
-        if not os.path.exists( fout ) :
-           command = "ncks -d latitude,{0},{1} -d longitude,{2},{3} {4} {5}".format(
-                      np.float(self.south), np.float(self.north),
-                      np.float(self.west),  np.float(self.east), fin, fout )
-           print (command)
-           os.system( command )
     
     def interp_time(self, ds, fin, fout):
         """ 
@@ -97,7 +84,25 @@ class era5(object):
            print (command)
            os.system( command )
           
-    def extract_cut_out(self, nameVar, dirVar):
+    def extract(self, fin, fout) :
+        """
+        extract regional domain
+        """
+
+        if self.clean : os.system( "rm {0}".format( fout ) )
+        if not os.path.exists( fout ) :
+           cmd_str = "ncks -d latitude,{0},{1} -d longitude,{2},{3} {4} {5}"
+           command = cmd_str.format(
+                         np.float(self.south), np.float(self.north),
+                         np.float(self.west),  np.float(self.east), fin, fout )
+           print (command)
+           os.system( command )
+    
+    def extract_loop(self, nameVar, dirVar):
+        """
+        loop extraction over each year
+        """
+
         for iY in range( self.year_init, self.year_end+1 ) :
             ## Files
             finput  = "{0}/{1}/{2}_{1}.nc".format(
@@ -120,7 +125,7 @@ class era5(object):
 
         if not os.path.exists( foutInterp ) :
             if pythonic:
-                ds = self.read_NetCDF(
+                ds = self.read_NetCDF_all_years(
                     "{1}/{0}_y*.nc".format(nameVar, self.path_EXTRACT), nameVar,
                           chunks=self.chunks)
     
@@ -190,32 +195,12 @@ class era5(object):
                 scale_factor = ds0.encoding['scale_factor']
                 add_offset   = ds0.encoding['add_offset']
 
-                # save
+                # save with encoding
                 ds.to_netcdf(fout, encoding={nameVar: {
                     "dtype": 'int16',
                     "scale_factor": scale_factor,
                     "add_offset": add_offset,
                     "_FillValue": -32767}})
-
-    def compute_scale_and_offset(self, da, n=16):
-        """Calculate offset and scale factor for int conversion
-    
-        Based on Krios101's code above.
-        """
-    
-        vmin = da.min().values#.item()
-        vmax = da.max().values#.item()
-    
-        # stretch/compress data to the available packed range
-        scale_factor = (vmax - vmin) / (2 ** n - 1)
-    
-        # translate the range to be symmetric about zero
-        add_offset = vmin + 2 ** (n - 1) * scale_factor
-
-        print ('scale factor, ', scale_factor)
-        print ('add offset, ', add_offset)
-    
-        return scale_factor, add_offset
 
     def format_nc(self, da, nameVar):
 
@@ -231,10 +216,6 @@ class era5(object):
         da = da.rename({'longitude':'X','latitude':'Y'})
         da = da.assign_coords({'longitude':mlon,'latiude':mlat})
       
-        # format fill values
-        #da = da.fillna(-9999999)
-        #da.attrs['_FillValue'] = -9999999
-
         # file information
         self.add_global_attrs(da)
  
@@ -268,7 +249,7 @@ class era5(object):
             ## -----------------------------------
             ## -------- step 1: EXTRACT ---------- 
             ## -----------------------------------
-            if step1: self.extract_cut_out(nameVar, dirVar)
+            if step1: self.extract_loop(nameVar, dirVar)
         
             ## -----------------------------------
             #### ------ step 2: INTERPOLATE ------ 

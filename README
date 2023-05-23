@@ -4,3 +4,5 @@ configurations.
 
  - gen_era5.py is based on a script of Nico's, which processes ERA5 data,
    ready for use with NEMO. The reference parameter choices are for AMM15.
+
+Note: Scope to merge this into pyNEMO framework.
