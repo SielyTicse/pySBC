@@ -2,7 +2,8 @@
 Scripts for generating surface boundary conditions for regional NEMO 
 configurations.
 
- - gen_era5.py is based on a script of Nico's, which processes ERA5 data,
+ - gen_era5.py: Based on a script of Nico's, which processes ERA5 data
    ready for use with NEMO. The reference parameter choices are for AMM15.
+ - gen_era5_legacy.py: Nico's original script.
 
 Note: Scope to merge this into pyNEMO framework.
