@@ -5,9 +5,10 @@ import xarray as xr
 
 class era5(object):
     """
-    Generate ERA5 atmospheric forcing for NEMO
-    So far to prduce a year by a year - need to be automated
-    Loosly based on code by Nico
+    Generate ERA5 atmospheric forcing for regional NEMO config
+    Loosly based on code by Nico.
+
+    Defaults parameters are for AMM15
     """
 
     def __init__(self, pythonic=False):
