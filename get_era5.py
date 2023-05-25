@@ -33,10 +33,17 @@ YEAR_2 = 2018     ## Final year
 YEAR_1 = 2019
 YEAR_2 = 2019
 
-VAR_INST = [ '10m_u_component_of_wind','10m_v_component_of_wind','2m_dewpoint_temperature',\
-             '2m_temperature','mean_sea_level_pressure','mean_snowfall_rate',\
-             'mean_surface_downward_long_wave_radiation_flux','mean_surface_downward_short_wave_radiation_flux','mean_total_precipitation_rate',\
+VAR_INST = [ '10m_u_component_of_wind',
+             '10m_v_component_of_wind',
+             '2m_dewpoint_temperature',
+             '2m_temperature',
+             'mean_sea_level_pressure',
+             'mean_snowfall_rate',
+             'mean_surface_downward_long_wave_radiation_flux',
+             'mean_surface_downward_short_wave_radiation_flux',
+             'mean_total_precipitation_rate',
              'surface_pressure', ]
+out_path = '/projectsa/NEMO/Forcing'
  
 #======================= CORE CODE ===========================
 
@@ -49,7 +56,7 @@ for iY in range( YEAR_1, YEAR_2+1 ) :
     ## LOOP OVER SURFACE INSTANTANEOUS VARIABLES
     for nV, kV in enumerate(VAR_INST) :
 
-        directory = "./ERA5/SURFACE_FORCING/{0}".format( kV )
+        directory = "{0}/ERA5/SURFACE_FORCING/{1}".format(out_path,kV)
         if not os.path.exists( directory ): os.makedirs( directory )
 
         fname = "{0}/{2}_{1}.nc".format( directory, kV, iY )
