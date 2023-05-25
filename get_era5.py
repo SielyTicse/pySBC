@@ -24,26 +24,14 @@ __date__        = "2019-02"
 import os
 import numpy as np
 import cdsapi
+import get_era_params
 
-#===================== USER PARAMETER ========================
+#===================== USER PARAMETERS =======================
 
-YEAR_1 = 1979     ## Initial year to start
-YEAR_2 = 2018     ## Final year
-
-YEAR_1 = 2019
-YEAR_2 = 2019
-
-VAR_INST = [ '10m_u_component_of_wind',
-             '10m_v_component_of_wind',
-             '2m_dewpoint_temperature',
-             '2m_temperature',
-             'mean_sea_level_pressure',
-             'mean_snowfall_rate',
-             'mean_surface_downward_long_wave_radiation_flux',
-             'mean_surface_downward_short_wave_radiation_flux',
-             'mean_total_precipitation_rate',
-             'surface_pressure', ]
-out_path = '/projectsa/NEMO/Forcing'
+YEAR_0 = get_era_params.y0          # Initial year
+YEAR_1 = get_era_params.y1          # Final year
+VAR_INST = get_era_params.var_list  # Variables to process
+out_path = get_era_params.var_list  # Path for saving data
  
 #======================= CORE CODE ===========================
 
