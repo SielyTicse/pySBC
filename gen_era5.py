@@ -25,7 +25,7 @@ class era5(object):
         # NEMO FORCING
         self.path_FORCING = '/projectsa/NEMO/ryapat/Forcing'
         self.clean        = False            ## Clean extraction (longest bit)
-        self.sph_ON       = False            ## Compute specific humidity or not
+        self.sph_ON       = True             ## Compute specific humidity or not
         self.chunks={'time':50}
 
         self.var_path = { 
