@@ -24,14 +24,14 @@ __date__        = "2019-02"
 import os
 import numpy as np
 import cdsapi
-import get_era_params
+import get_era5_params
 
 #===================== USER PARAMETERS =======================
 
-YEAR_0 = get_era_params.y0          # Initial year
-YEAR_1 = get_era_params.y1          # Final year
-VAR_INST = get_era_params.var_list  # Variables to process
-out_path = get_era_params.var_list  # Path for saving data
+YEAR_0   = get_era5_params.y0        # Initial year
+YEAR_1   = get_era5_params.y1        # Final year
+VAR_INST = get_era5_params.var_list  # Variables to process
+out_path = get_era5_params.out_path  # Path for saving data
  
 #======================= CORE CODE ===========================
 
@@ -39,7 +39,7 @@ out_path = get_era_params.var_list  # Path for saving data
 server = cdsapi.Client()
 
 ## LOOP OVER YEARS
-for iY in range( YEAR_1, YEAR_2+1 ) :
+for iY in range( YEAR_0, YEAR_1+1 ) :
 
     ## LOOP OVER SURFACE INSTANTANEOUS VARIABLES
     for nV, kV in enumerate(VAR_INST) :

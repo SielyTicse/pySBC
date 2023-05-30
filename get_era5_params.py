@@ -2,8 +2,8 @@
 Set ERA5 user defined parameters
 """
 
-y0 = 1950 # Initial year
-y1 = 2022 # Final year
+y0 = 1951 # Initial year
+y1 = 1960 # Final year
 
 # Variable list
 var_list = [ '10m_u_component_of_wind',
