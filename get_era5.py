@@ -24,7 +24,7 @@ __date__        = "2019-02"
 import os
 import numpy as np
 import cdsapi
-import get_era5_params
+import config
 
 #===================== USER PARAMETERS =======================
 

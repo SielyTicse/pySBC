@@ -1,12 +1,22 @@
 from   netCDF4 import Dataset
 import numpy as np
+import config
 
-coorfile = 'ERA5_MSL_y2004.nc'      ## One ERA forcing file generated previously
-maskfile = 'my_era5_LSM.nc'         ## Land Sea Mask from ncks
-outfile  = 'ERA5_LSM.nc'            ## Output file
 
-#----------------------------------------------------------------------------
+class LandSeaMask(object):
+    """ Generate ERA5 Land Sea Mask for NEMO  """
 
+    def __init__(self):
+        coorfile  = 'ERA5_MSL_y2004.nc' # existing ERA forcing file
+        outfile   = 'ERA5_LSM.nc'       # Output file
+        mask_path = '/projects
+
+    def cut_region():
+
+        lat_0, lat_1 = 38.,  68.
+        lat_0, lat_1 = 332., 19.
+        
+        ncks -d latitude,38.,68. -d longitude,332.,19. /projectsa/NEMO/Forcing/ERA5/era5_atmos_landseamask.nc ./my_era5_LSM.nc
 ## READ SRC BATHYMETRY
 nc_c  = Dataset( coorfile, 'r' )
 lon_src = nc_c.variables[ 'lon' ][:]
