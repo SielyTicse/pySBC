@@ -1,7 +1,8 @@
 import os, sys, glob
-import numpy as np
+import numpy  as np
 import datetime
 import xarray as xr
+import config
 
 class era5(object):
     """
@@ -14,10 +15,10 @@ class era5(object):
     def __init__(self, pythonic=False):
         self.year_init = 1979                     ## First year to process
         self.year_end  = 2021                     ## Last one [included]
-        self.east      =   19                     ## East Border
-        self.west      =  -28                     ## West Border
-        self.north     =   68                     ## North Border
-        self.south     =   38                     ## South Border
+        self.east      = config.east              ## East Border
+        self.west      = config.west              ## West Border
+        self.north     = config.north             ## North Border
+        self.south     = config.south             ## South Border
         # ROOT PATH OF ERA5 DATA
         self.path_ERA5 = '/projectsa/NEMO/Forcing/ERA5/SURFACE_FORCING' 
         # WHERE TO EXTRACT YOUR REGION

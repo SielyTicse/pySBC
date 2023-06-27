@@ -18,3 +18,9 @@ var_list = [ '10m_u_component_of_wind',
              'surface_pressure', ]
 
 out_path = '/projectsa/NEMO/Forcing'
+
+# set domain extent
+east  =   19  # East Border
+west  =  -28  # West Border
+north =   68  # North Border
+south =   38  # South Border

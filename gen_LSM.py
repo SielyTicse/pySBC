@@ -1,47 +1,59 @@
 from   netCDF4 import Dataset
 import numpy as np
 import config
-
+import os
 
 class LandSeaMask(object):
     """ Generate ERA5 Land Sea Mask for NEMO  """
 
     def __init__(self):
-        coorfile  = 'ERA5_MSL_y2004.nc' # existing ERA forcing file
-        outfile   = 'ERA5_LSM.nc'       # Output file
-        mask_path = '/projects
+        self.mask_in = outpath + 'ERA5/era5_atmos_landseamask.nc' # LSM source
+        self.out_path = '/projectsa/NEMO/ryapat/Forcing' # save path
 
-    def cut_region():
+        cut_off = 0.5  # flooding cell fraction
 
-        lat_0, lat_1 = 38.,  68.
-        lat_0, lat_1 = 332., 19.
-        
-        ncks -d latitude,38.,68. -d longitude,332.,19. /projectsa/NEMO/Forcing/ERA5/era5_atmos_landseamask.nc ./my_era5_LSM.nc
-## READ SRC BATHYMETRY
-nc_c  = Dataset( coorfile, 'r' )
-lon_src = nc_c.variables[ 'lon' ][:]
-lat_src = nc_c.variables[ 'lat' ][:]
-nc_c.close()
-print coorfile, "loaded", lon_src.shape
+        # domain extent
+        self.east = config.east
+        self.west = config.west
+        self.north = config.north
+        self.south = config.south
 
-## READ SRC BATHYMETRY
-nc_src  = Dataset( maskfile, 'r' )
-msk_src = nc_src.variables[ 'lsm' ][0,::-1] ## lat to be reverse as it was done in the generation of the forcing files
-print maskfile, "loaded", msk_src.shape
-#msk_src[(msk_src==0.)] = -1
-#msk_src[(msk_src<1)] = -1
-seas = msk_src <  0.5
-land = msk_src >= 0.5
-msk_src[seas] = -1
-msk_src[land] =  1
+    def cut_region(self):
+        """
+        Cut source Land Sea Mask to domain
+        """
 
-## NETCDF OUTPUT
-ncout = Dataset( outfile, 'w', format='NETCDF3_CLASSIC' )
-ncout.createDimension( 'nlat', msk_src.shape[0] )
-ncout.createDimension( 'nlon', msk_src.shape[1] )
-lon = ncout.createVariable( 'lon', 'f4', ('nlat', 'nlon',), zlib='True' )
-lat = ncout.createVariable( 'lat', 'f4', ('nlat', 'nlon',), zlib='True' )
-lon[:]  = lon_src; lat[:] = lat_src
-bout    = ncout.createVariable( "LSM", 'f4', ('nlat','nlon',), zlib='True', fill_value=-999. )
-bout[:] = msk_src
-ncout.close()
+        # conform longitude format
+        if self.west < 0 : self.west = 360. + self.west
+        if self.east < 0 : self.east = 360. + self.east
+
+        # output path
+        fout = 'LandSeaMask/era5_LSM_{0}_{1}_{2}_{3}.nc'.format(
+                    self.west, self.east, self.south, self.north)
+
+        # set ncks
+        cmd_str = "ncks -d latitude,{0},{1} -d longitude,{2},{3} {4} {5}"
+
+        # format ncks
+        cmd = cmd_str.format(self.west, self.east, self.south, self.north,
+                             self.mask_in, fout)
+
+        # exectute ncks
+        os.system( command )
+
+    def assert_binary_mask(self):
+        """
+        Set mask to be -1 (sea) or 1 (land).
+        """
+
+        # load
+        msk_src = xr.open_dataset(self.mask_in)
+
+        # assert binary mask (from R+)
+        seas = msk <  cut_off
+        land = msk >= cut_off
+        msk[msk < cut_off] = -1
+        msk[msk >= cutoff] =  1
+
+        # save
+        msk.to_netcdf(self.out_path + '/ERA5_LSM.nc') 
