@@ -92,3 +92,6 @@ for iY in range( YEAR_0, YEAR_1+1 ) :
     },
     '{0}'.format( fname ) )
 
+# future option
+# to add lat-lon extent
+# 'area':['75', '-15', '30', '42.5'],
