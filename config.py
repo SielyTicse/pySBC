@@ -17,10 +17,13 @@ var_list = [ '10m_u_component_of_wind',
              'mean_total_precipitation_rate',
              'surface_pressure', ]
 
-out_path = '/projectsa/NEMO/Forcing'
+head = '/projectsa/NEMO' # head path
+raw_path       = head + '/NEMO/Forcing'    # raw data
+tmp_path       = head + '/ryapat/Extract'  # temp extraction space
+processed_path = head + '/ryapat/Forcing'  # processed forcing
 
 # set domain extent
-east  =   19  # East Border
-west  =  -28  # West Border
-north =   68  # North Border
-south =   38  # South Border
+east  =   19.  # east border
+west  =  -28.  # west border
+north =   68.  # north border
+south =   38.  # south border

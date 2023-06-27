@@ -1,5 +1,4 @@
-from   netCDF4 import Dataset
-import numpy as np
+import xarray as xr
 import config
 import os
 
@@ -7,10 +6,12 @@ class LandSeaMask(object):
     """ Generate ERA5 Land Sea Mask for NEMO  """
 
     def __init__(self):
-        self.mask_in = outpath + 'ERA5/era5_atmos_landseamask.nc' # LSM source
-        self.out_path = '/projectsa/NEMO/ryapat/Forcing' # save path
+        # set paths
+        self.tmp_path = config.tmp_path
+        self.mask_in  = config.raw_path + '/ERA5/era5_atmos_landseamask.nc' 
+        self.out_path = config.processed_path 
 
-        cut_off = 0.5  # flooding cell fraction
+        self.cut_off = 0.5  # flooding cell fraction
 
         # domain extent
         self.east = config.east
@@ -28,8 +29,8 @@ class LandSeaMask(object):
         if self.east < 0 : self.east = 360. + self.east
 
         # output path
-        fout = 'LandSeaMask/era5_LSM_{0}_{1}_{2}_{3}.nc'.format(
-                    self.west, self.east, self.south, self.north)
+        fout = self.out_path + '/ERA5_LSM_{0}_{1}_{2}_{3}.nc'.format(
+                self.west, self.east, self.south, self.north)
 
         # set ncks
         cmd_str = "ncks -d latitude,{0},{1} -d longitude,{2},{3} {4} {5}"
@@ -37,9 +38,10 @@ class LandSeaMask(object):
         # format ncks
         cmd = cmd_str.format(self.west, self.east, self.south, self.north,
                              self.mask_in, fout)
-
+        print (cmd)
+        
         # exectute ncks
-        os.system( command )
+        os.system( cmd )
 
     def assert_binary_mask(self):
         """
@@ -47,13 +49,15 @@ class LandSeaMask(object):
         """
 
         # load
-        msk_src = xr.open_dataset(self.mask_in)
+        msk = xr.open_dataarray(self.mask_in)
 
         # assert binary mask (from R+)
-        seas = msk <  cut_off
-        land = msk >= cut_off
-        msk[msk < cut_off] = -1
-        msk[msk >= cutoff] =  1
+        msk = xr.where(msk  <  self.cut_off, -1, 1)
 
         # save
         msk.to_netcdf(self.out_path + '/ERA5_LSM.nc') 
+
+if __name__ == '__main__':
+    LSM = LandSeaMask()
+    LSM.cut_region()
+    LSM.assert_binary_mask()

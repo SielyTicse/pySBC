@@ -28,10 +28,10 @@ import config
 
 #===================== USER PARAMETERS =======================
 
-YEAR_0   = get_era5_params.y0        # Initial year
-YEAR_1   = get_era5_params.y1        # Final year
-VAR_INST = get_era5_params.var_list  # Variables to process
-out_path = get_era5_params.out_path  # Path for saving data
+YEAR_0   = config.y0        # Initial year
+YEAR_1   = config.y1        # Final year
+VAR_INST = config.var_list  # Variables to process
+out_path = config.raw_path  # Path for saving data
  
 #======================= CORE CODE ===========================
 

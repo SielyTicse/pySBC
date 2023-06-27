@@ -20,11 +20,11 @@ class era5(object):
         self.north     = config.north             ## North Border
         self.south     = config.south             ## South Border
         # ROOT PATH OF ERA5 DATA
-        self.path_ERA5 = '/projectsa/NEMO/Forcing/ERA5/SURFACE_FORCING' 
+        self.path_ERA5 = config.raw_path + '/ERA5/SURFACE_FORCING' 
         # WHERE TO EXTRACT YOUR REGION
-        self.path_EXTRACT = '/projectsa/NEMO/ryapat/Extract' 
+        self.path_EXTRACT = config.tmp_path
         # NEMO FORCING
-        self.path_FORCING = '/projectsa/NEMO/ryapat/Forcing'
+        self.path_FORCING = config.processed_path
         self.clean        = False            ## Clean extraction (longest bit)
         self.sph_ON       = True             ## Compute specific humidity or not
         self.chunks={'time':50}
