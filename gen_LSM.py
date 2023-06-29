@@ -7,9 +7,8 @@ class LandSeaMask(object):
 
     def __init__(self):
         # set paths
-        self.tmp_path = config.tmp_path
-        self.mask_in  = config.raw_path + '/ERA5/era5_atmos_landseamask.nc' 
-        self.out_path = config.processed_path 
+        self.tmp_path    = config.tmp_path
+        self.global_mask = config.raw_path + '/ERA5/era5_atmos_landseamask.nc' 
 
         self.cut_off = 0.5  # flooding cell fraction
 
@@ -19,45 +18,71 @@ class LandSeaMask(object):
         self.north = config.north
         self.south = config.south
 
-    def cut_region(self):
+        # assert 0-360 lon format
+        self.assert_lons()
+
+    def assert_lons(self):
         """
-        Cut source Land Sea Mask to domain
+        Ensure requested longitudes are in 0-360 format
         """
 
         # conform longitude format
         if self.west < 0 : self.west = 360. + self.west
         if self.east < 0 : self.east = 360. + self.east
 
-        # output path
-        fout = self.out_path + '/ERA5_LSM_{0}_{1}_{2}_{3}.nc'.format(
-                self.west, self.east, self.south, self.north)
+    def cut_region_ncks(self):
+        """
+        Cut source Land Sea Mask to domain
+        """
+
+
+        # extracted output path
+        self.extracted_path = config.processed_path + \
+                              '/ERA5_LSM_{0}_{1}_{2}_{3}.nc'.format(
+                              self.west, self.east, self.south, self.north)
 
         # set ncks
         cmd_str = "ncks -d latitude,{0},{1} -d longitude,{2},{3} {4} {5}"
 
         # format ncks
-        cmd = cmd_str.format(self.west, self.east, self.south, self.north,
-                             self.mask_in, fout)
+        cmd = cmd_str.format(self.south, self.north, self.west, self.east,
+                             self.global_mask, self.extracted_path)
         print (cmd)
         
         # exectute ncks
         os.system( cmd )
 
-    def assert_binary_mask(self):
+    def cut_region_python(self):
         """
-        Set mask to be -1 (sea) or 1 (land).
+        Cut source Land Sea Mask to domain
+        
+        ***Under construction***
+        Pythonic replacement for ncks to reduce number of files created.
         """
 
-        # load
-        msk = xr.open_dataarray(self.mask_in)
+        # open extracted mask
+        msk = xr.open_dataarray(self.global_mask)
 
-        # assert binary mask (from R+)
-        msk = xr.where(msk  <  self.cut_off, -1, 1)
+        # extract region
+        msk = msk.where((msk.longitude > self.west) &
+                        (msk.longitude < self.east) &
+                        (msk.latitude > self.south) &
+                        (msk.latitude < self.north), drop=True)
 
-        # save
-        msk.to_netcdf(self.out_path + '/ERA5_LSM.nc') 
+        msk.to_netcdf(config.processed_path + '/ERA5_LSM_python.nc') 
+ 
+    def cut_method_compare(self):
+        """
+        Temporary function to compare extraction methods.
+        """
+
+        msk_python = xr.open_dataarray(
+                          config.processed_path + '/ERA5_LSM_python.nc') 
+        msk =  xr.open_dataarray(config.processed_path + '/ERA5_LSM.nc') 
+
+        print (msk)
+        print (msk_python)
 
 if __name__ == '__main__':
     LSM = LandSeaMask()
-    LSM.cut_region()
-    LSM.assert_binary_mask()
+    LSM.cut_region_ncks()

@@ -18,7 +18,7 @@ var_list = [ '10m_u_component_of_wind',
              'surface_pressure', ]
 
 head = '/projectsa/NEMO' # head path
-raw_path       = head + '/NEMO/Forcing'    # raw data
+raw_path       = head + '/Forcing'    # raw data
 tmp_path       = head + '/ryapat/Extract'  # temp extraction space
 processed_path = head + '/ryapat/Forcing'  # processed forcing
 
