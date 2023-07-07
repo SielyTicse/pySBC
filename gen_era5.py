@@ -264,11 +264,13 @@ class era5(object):
         
         if self.sph_ON : 
         
-            for iY in range( Year_init, Year_end+1 ) :
+            for iY in range(self.year_init, self.year_end+1) :
         
                 # read
-                d2m_path = path_FORCING + '/SPH_ERA5_D2M_y' + str(iY) + '.nc'
-                sp_path  = path_FORCING + '/SPH_ERA5_sp_y'  + str(iY) + '.nc'
+                d2m_path = self.path_FORCING + '/ERA5_d2m_y'\
+                           + str(iY) + '.nc'
+                sp_path  = self.path_FORCING + '/ERA5_sp_y'\
+                           + str(iY) + '.nc'
                 d2m = xr.open_dataarray(d2m_path, chunks=self.chunks)
                 sp  = xr.open_dataarray(sp_path,  chunks=self.chunks) 
         
