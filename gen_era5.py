@@ -13,8 +13,8 @@ class era5(object):
     """
 
     def __init__(self, pythonic=False):
-        self.year_init = 1979                     ## First year to process
-        self.year_end  = 2021                     ## Last one [included]
+        self.year_init = config.y0                ## First year to process
+        self.year_end  = config.y1                ## Last one [included]
         self.east      = config.east              ## East Border
         self.west      = config.west              ## West Border
         self.north     = config.north             ## North Border
@@ -25,8 +25,8 @@ class era5(object):
         self.path_EXTRACT = config.tmp_path
         # NEMO FORCING
         self.path_FORCING = config.processed_path
-        self.clean        = False            ## Clean extraction (longest bit)
-        self.sph_ON       = True             ## Compute specific humidity or not
+        self.clean        = False          ## Clean extraction (longest bit)
+        self.sph_ON       = True           ## Compute specific humidity or not
         self.chunks={'time':50}
 
         self.var_path = { 
