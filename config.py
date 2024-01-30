@@ -2,20 +2,26 @@
 Set ERA5 user defined parameters
 """
 
-y0 = 1961 # Initial year
-y1 = 1978 # Final year
+y0 = 2004 # Initial year
+y1 = 2004 # Final year
+
+## Compute specific humidity or not
+sph_ON = False 
 
 # Variable list
-var_list = [ '10m_u_component_of_wind',
-             '10m_v_component_of_wind',
-             '2m_dewpoint_temperature',
-             '2m_temperature',
-             'mean_sea_level_pressure',
-             'mean_snowfall_rate',
-             'mean_surface_downward_long_wave_radiation_flux',
-             'mean_surface_downward_short_wave_radiation_flux',
-             'mean_total_precipitation_rate',
-             'surface_pressure', ]
+var_list = { 
+       "10m_u_component_of_wind" : "u10",
+       "10m_v_component_of_wind" : "v10",
+       "2m_temperature"          : "t2m", 
+       "mean_sea_level_pressure" : "msl", 
+       "mean_snowfall_rate"      : "msr" ,
+       "mean_surface_downward_long_wave_radiation_flux"  : "msdwlwrf",
+       "mean_surface_downward_short_wave_radiation_flux" : "msdwswrf",
+       "mean_total_precipitation_rate" : "mtpr" }
+
+if sph_ON :
+   var_list[ "surface_pressure"  ] = 'sp'
+   var_list[ "2m_dewpoint_temperature" ] = 'd2m'
 
 head = '/projectsa/NEMO' # head path
 raw_path       = head + '/Forcing'    # raw data

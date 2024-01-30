@@ -25,23 +25,11 @@ class era5(object):
         self.path_EXTRACT = config.tmp_path
         # NEMO FORCING
         self.path_FORCING = config.processed_path
-        self.clean        = False          ## Clean extraction (longest bit)
-        self.sph_ON       = True           ## Compute specific humidity or not
+        self.clean        = False    ## Clean extraction (longest bit)
+        self.sph_ON = config.sph_ON  ## Switch for specific humidity calculation
         self.chunks={'time':50}
 
-        self.var_path = { 
-               "10m_u_component_of_wind" : "u10",
-               "10m_v_component_of_wind" : "v10",
-               "2m_temperature"          : "t2m", 
-               "mean_sea_level_pressure" : "msl", 
-               "mean_snowfall_rate"      : "msr" ,
-               "mean_surface_downward_long_wave_radiation_flux"  : "msdwlwrf",
-               "mean_surface_downward_short_wave_radiation_flux" : "msdwswrf",
-               "mean_total_precipitation_rate" : "mtpr" }
-        
-        if self.sph_ON :
-           self.var_path[ "surface_pressure"  ] = 'sp'
-           self.var_path[ "2m_dewpoint_temperature" ] = 'd2m'
+        self.var_path = config.var_list
 
     def timeit(func):
         """ decorator for timing a function """ 
@@ -95,8 +83,8 @@ class era5(object):
         if not os.path.exists( fout ) :
            cmd_str = "ncks -d latitude,{0},{1} -d longitude,{2},{3} {4} {5}"
            command = cmd_str.format(
-                         np.float(self.south), np.float(self.north),
-                         np.float(self.west),  np.float(self.east), fin, fout )
+                         float(self.south), float(self.north),
+                         float(self.west),  float(self.east), fin, fout )
            print (command)
            os.system( command )
     
@@ -191,20 +179,45 @@ class era5(object):
                 ds = ds.interp(time=half_time)
 
                 # format indexes and coords
-                ds = self.format_nc(ds, nameVar)
+                self.ds = self.format_nc(ds, nameVar)
+
+                # check orientation of latitude
+                self.check_latitude()
 
                 # maintain encoding for storage savings
                 scale_factor = ds0.encoding['scale_factor']
                 add_offset   = ds0.encoding['add_offset']
 
                 # save with encoding
-                ds.to_netcdf(fout, encoding={nameVar: {
-                    "dtype": 'int16',
-                    "scale_factor": scale_factor,
-                    "add_offset": add_offset,
-                    "_FillValue": -32767}})
+                self.ds.to_netcdf(fout, encoding={nameVar: {
+                                  "dtype": 'int16',
+                                  "scale_factor": scale_factor,
+                                  "add_offset": add_offset,
+                                  "_FillValue": -32767}},
+                                  unlimited_dims="time_counter")
+
+    def check_latitude(self):
+        """
+        Check the orientation of latitude
+
+        ERA5 latitude has north down orientation. Check orientation of
+        source data and flip axes if north down is found.
+        """
+
+        # get delta latitude
+        dlon = self.ds.longitude.diff("X")
+        dlat = self.ds.latitude.diff("Y")
+        
+        # sort if monotonic decreasing
+        if (dlon < 0).all():
+            self.ds = self.ds.isel(X=slice(None,None,-1))
+        if (dlat < 0).all():
+            self.ds = self.ds.isel(Y=slice(None,None,-1))
 
     def format_nc(self, da, nameVar):
+        """
+        Add netCDF attributes and format coordinates
+        """
 
         # mesh lat and lon
         mlon, mlat = np.meshgrid(da.longitude, da.latitude)
@@ -216,7 +229,7 @@ class era5(object):
         # assign X/Y as indexes
         da = da.drop(['longitude','latitude'])
         da = da.rename({'longitude':'X','latitude':'Y'})
-        da = da.assign_coords({'longitude':mlon,'latiude':mlat})
+        da = da.assign_coords({'longitude':mlon,'latitude':mlat})
       
         # file information
         self.add_global_attrs(da)
@@ -248,14 +261,18 @@ class era5(object):
             print ("================== {0} - {1} ==================".format(
                     dirVar, nameVar ))
         
-            ## -----------------------------------
-            ## -------- step 1: EXTRACT ---------- 
-            ## -----------------------------------
+            ## --------------------------------------------------
+            ## -------- step 1: EXTRACT -------------------------
+            ## --------------------------------------------------
             if step1: self.extract_loop(nameVar, dirVar)
         
-            ## -----------------------------------
-            #### ------ step 2: INTERPOLATE ------ 
-            ## -----------------------------------
+            ## --------------------------------------------------
+            #### ------ step 2: check latitude orientation ------ 
+            ## --------------------------------------------------
+            
+            ## --------------------------------------------------
+            #### ------ step 3: INTERPOLATE ---------------------
+            ## --------------------------------------------------
             if step2:
                 self.interpolate_by_year(nameVar)
         

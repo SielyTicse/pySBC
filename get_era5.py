@@ -42,7 +42,7 @@ server = cdsapi.Client()
 for iY in range( YEAR_0, YEAR_1+1 ) :
 
     ## LOOP OVER SURFACE INSTANTANEOUS VARIABLES
-    for nV, kV in enumerate(VAR_INST) :
+    for nV, kV in enumerate(VAR_INST.keys()) :
 
         directory = "{0}/ERA5/SURFACE_FORCING/{1}".format(out_path,kV)
         if not os.path.exists( directory ): os.makedirs( directory )
