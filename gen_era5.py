@@ -194,7 +194,7 @@ class era5(object):
                                   "scale_factor": scale_factor,
                                   "add_offset": add_offset,
                                   "_FillValue": -32767}},
-                                  unlimited_dims="time_counter")
+                                  unlimited_dims="time")
 
     def check_latitude(self):
         """
