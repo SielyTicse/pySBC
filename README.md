@@ -1,3 +1,8 @@
+**31 Jan 24 - RDP**
+
+**This repository had issues with the time coordinates
+and the orientation of latitude. A correction has now be applied but not tested.**
+
 # pySBC
 
 Scripts for generating surface boundary conditions for regional NEMO 
