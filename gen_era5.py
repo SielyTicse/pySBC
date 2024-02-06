@@ -3,6 +3,7 @@ import numpy  as np
 import datetime
 import xarray as xr
 import config
+import _utils
 
 class era5(object):
     """
@@ -182,7 +183,7 @@ class era5(object):
                 self.ds = self.format_nc(ds, nameVar)
 
                 # check orientation of latitude
-                self.check_latitude()
+                _utils.check_latitude(self.ds)
 
                 # maintain encoding for storage savings
                 scale_factor = ds0.encoding['scale_factor']
@@ -195,24 +196,6 @@ class era5(object):
                                   "add_offset": add_offset,
                                   "_FillValue": -32767}},
                                   unlimited_dims="time")
-
-    def check_latitude(self):
-        """
-        Check the orientation of latitude
-
-        ERA5 latitude has north down orientation. Check orientation of
-        source data and flip axes if north down is found.
-        """
-
-        # get delta latitude
-        dlon = self.ds.longitude.diff("X")
-        dlat = self.ds.latitude.diff("Y")
-        
-        # sort if monotonic decreasing
-        if (dlon < 0).all():
-            self.ds = self.ds.isel(X=slice(None,None,-1))
-        if (dlat < 0).all():
-            self.ds = self.ds.isel(Y=slice(None,None,-1))
 
     def format_nc(self, da, nameVar):
         """
@@ -256,23 +239,21 @@ class era5(object):
         Compute Specific Humidity according to ECMWF documentation.
         """
         
-                # read
-                d2m_path = self.path_FORCING + '/ERA5_d2m_y'\
-                           + str(iY) + '.nc'
-                sp_path  = self.path_FORCING + '/ERA5_sp_y'\
-                           + str(iY) + '.nc'
-                d2m = xr.open_dataarray(d2m_path, chunks=self.chunks)
-                sp  = xr.open_dataarray(sp_path,  chunks=self.chunks) 
+        # read
+        d2m_path = self.path_FORCING + '/ERA5_d2m_y' + str(iY) + '.nc'
+        sp_path  = self.path_FORCING + '/ERA5_sp_y' + str(iY) + '.nc'
+        d2m = xr.open_dataarray(d2m_path, chunks=self.chunks)
+        sp  = xr.open_dataarray(sp_path,  chunks=self.chunks) 
         
-                # calculate sph
-                esat = 611.21 * np.exp( 17.502 * (d2m-273.16) / (d2m-32.19) )
-                dyrvap = 287.0597 / 461.5250
-                sph = dyrvap * esat / ( sp - (1-dyrvap) * esat)
-                sph.attrs = {'units':'1', 'standard_name':'specific humidity'}
-         
-                # save
-                fout = self.path_FORCING + '/ERA5_SPH_y' + str(iY) + '.nc'
-                sph.to_netcdf(fout)
+        # calculate sph
+        esat = 611.21 * np.exp( 17.502 * (d2m-273.16) / (d2m-32.19) )
+        dyrvap = 287.0597 / 461.5250
+        sph = dyrvap * esat / ( sp - (1-dyrvap) * esat)
+        sph.attrs = {'units':'1', 'standard_name':'specific humidity'}
+        
+        # save
+        fout = self.path_FORCING + '/ERA5_SPH_y' + str(iY) + '.nc'
+        sph.to_netcdf(fout)
 
     def process_all(self, step1=True, step2=True):
         os.system("mkdir {0} {1}".format(
@@ -292,7 +273,7 @@ class era5(object):
             if step1: self.extract_loop(nameVar, dirVar)
         
             ## --------------------------------------------------
-            #### ------ step 3: INTERPOLATE ---------------------
+            #### ------ step 2: INTERPOLATE ---------------------
             ## --------------------------------------------------
             if step2:
                 self.interpolate_by_year(nameVar)

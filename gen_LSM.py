@@ -1,6 +1,7 @@
 import xarray as xr
 import config
 import os
+import _utils
 
 class LandSeaMask(object):
     """ Generate ERA5 Land Sea Mask for NEMO  """
@@ -83,6 +84,33 @@ class LandSeaMask(object):
         print (msk)
         print (msk_python)
 
+    def gen_land_sea_mask(self):
+        """
+        Create Land Sea Mask
+
+        Extracs region from global Land Sea Mask. Then asserts binary file
+        format and convensional coordinate orientation.
+        """
+
+        # cut desired to region
+        self.cut_region_ncks()
+
+        # get extracted data
+        da = xr.open_dataarray(self.extracted_path, chunks=-1)
+
+        # ensure conventional latitude
+        _utils.check_latitude(ds)
+
+        # mask
+        seas = da < self.cut_off
+        land = da >= self.cut_off
+        msk_src[seas] = 0 
+        msk_src[land] = 1
+
+       # save
+       save_extension =  + "ERA5_LSM_flood_{0}.nc".format(str(self.cut_off))
+       da.to_netcdf(config.processed_path + save_extension)
+
 if __name__ == '__main__':
     LSM = LandSeaMask()
-    LSM.cut_region_ncks()
+    LSM.gen_land_sea_mask()
