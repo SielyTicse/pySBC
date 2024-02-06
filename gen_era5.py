@@ -249,39 +249,12 @@ class era5(object):
             if not os.path.exists( fout ) :
                 year.to_netcdf(fout)
 
-    def process_all(self, step1=True, step2=True):
-        os.system("mkdir {0} {1}".format(
-                  self.path_EXTRACT, self.path_FORCING ) )
-        if self.west < 0 : self.west = 360.+self.west
-        if self.east < 0 : self.east = 360.+self.east
+    def process_specific_himiditiy(self):
+        """
+        PROCESS SPECIFIC HUMIDITY 
         
-        ## Loop over each variable
-        for dirVar, nameVar in self.var_path.items() :
-        
-            print ("================== {0} - {1} ==================".format(
-                    dirVar, nameVar ))
-        
-            ## --------------------------------------------------
-            ## -------- step 1: EXTRACT -------------------------
-            ## --------------------------------------------------
-            if step1: self.extract_loop(nameVar, dirVar)
-        
-            ## --------------------------------------------------
-            #### ------ step 2: check latitude orientation ------ 
-            ## --------------------------------------------------
-            
-            ## --------------------------------------------------
-            #### ------ step 3: INTERPOLATE ---------------------
-            ## --------------------------------------------------
-            if step2:
-                self.interpolate_by_year(nameVar)
-        
-        ##---------- PROCESS SPECIFIC HUMIDITY ----------------------     
-        ## Compute Specific Humidity according to ECMWF documentation
-        
-        if self.sph_ON : 
-        
-            for iY in range(self.year_init, self.year_end+1) :
+        Compute Specific Humidity according to ECMWF documentation.
+        """
         
                 # read
                 d2m_path = self.path_FORCING + '/ERA5_d2m_y'\
@@ -300,6 +273,33 @@ class era5(object):
                 # save
                 fout = self.path_FORCING + '/ERA5_SPH_y' + str(iY) + '.nc'
                 sph.to_netcdf(fout)
+
+    def process_all(self, step1=True, step2=True):
+        os.system("mkdir {0} {1}".format(
+                  self.path_EXTRACT, self.path_FORCING ) )
+        if self.west < 0 : self.west = 360.+self.west
+        if self.east < 0 : self.east = 360.+self.east
+        
+        ## Loop over each variable
+        for dirVar, nameVar in self.var_path.items() :
+        
+            print ("================== {0} - {1} ==================".format(
+                    dirVar, nameVar ))
+        
+            ## --------------------------------------------------
+            ## -------- step 1: EXTRACT -------------------------
+            ## --------------------------------------------------
+            if step1: self.extract_loop(nameVar, dirVar)
+        
+            ## --------------------------------------------------
+            #### ------ step 3: INTERPOLATE ---------------------
+            ## --------------------------------------------------
+            if step2:
+                self.interpolate_by_year(nameVar)
+        
+        if self.sph_ON : # get specific humidity
+            for iY in range(self.year_init, self.year_end+1):
+                self.process_specific_himiditiy()
 
 if __name__ == '__main__':
     era = era5()
