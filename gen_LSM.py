@@ -98,18 +98,20 @@ class LandSeaMask(object):
         # get extracted data
         da = xr.open_dataarray(self.extracted_path, chunks=-1)
 
+        # check time
+        if "time" in da.dims: 
+            da = da.isel(time=0).drop("time")
+
         # ensure conventional latitude
-        _utils.check_latitude(ds)
+        _utils.check_latitude(da)
 
-        # mask
+        # mask (sea = 0, land = 1)
         seas = da < self.cut_off
-        land = da >= self.cut_off
-        msk_src[seas] = 0 
-        msk_src[land] = 1
+        da = xr.where(seas, 0, 1)
 
-       # save
-       save_extension =  + "ERA5_LSM_flood_{0}.nc".format(str(self.cut_off))
-       da.to_netcdf(config.processed_path + save_extension)
+        # save
+        save_extension = "/ERA5_LSM_flood_{0}.nc".format(str(self.cut_off))
+        da.to_netcdf(config.processed_path + save_extension)
 
 if __name__ == '__main__':
     LSM = LandSeaMask()
