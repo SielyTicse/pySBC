@@ -256,7 +256,7 @@ class era5(object):
             self.sph.name='sph'
         # save
             fout = self.path_FORCING + '/ERA5_SPH_y' + str(iY) + '.nc'
-            sph.to_netcdf(fout)
+            sph.to_netcdf(fout,unlimited_dims='time')
 
     def process_all(self, step1=True, step2=True):
         os.system("mkdir {0} {1}".format(
